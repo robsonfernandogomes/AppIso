@@ -6,13 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
 
+/**
+ * @author Robson F. Gomes
+ */
 class Iso4217Item extends Model implements JsonSerializable
 {
-    private $code;
-    private $number;
-    private $decimal;
-    private $currency;
-    private $currency_locations;
+    public static string $entity ='tb_iso4217_items';
+    private string $code;
+    private int $number;
+    private int $decimal;
+    private string $currency;
+    private array $currency_locations;
 
     /**
      * @param $code
@@ -21,7 +25,8 @@ class Iso4217Item extends Model implements JsonSerializable
      * @param $currency
      * @param $currency_locations
      */
-    public function __construct($code, $number, $decimal, $currency, $currency_locations)
+
+    public function __construct($code = null, $number = null, $decimal= null, $currency= null, $currency_locations= null)
     {
         $this->code = $code;
         $this->number = $number;
@@ -39,87 +44,4 @@ class Iso4217Item extends Model implements JsonSerializable
             'currency_locations'=>$this->currency_locations,
             ];
         }
-
-    /**
-     * @return mixed
-     */
-    public function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * @param mixed $code
-     */
-    public function setCode($code): void
-    {
-        $this->code = $code;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getNumber()
-    {
-        return $this->number;
-    }
-
-    /**
-     * @param mixed $number
-     */
-    public function setNumber($number): void
-    {
-        $this->number = $number;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDecimal()
-    {
-        return $this->decimal;
-    }
-
-    /**
-     * @param mixed $decimal
-     */
-    public function setDecimal($decimal): void
-    {
-        $this->decimal = $decimal;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrency()
-    {
-        return $this->currency;
-    }
-
-    /**
-     * @param mixed $currency
-     */
-    public function setCurrency($currency): void
-    {
-        $this->currency = $currency;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrencyLocations()
-    {
-        return $this->currency_locations;
-    }
-
-    /**
-     * @param mixed $currency_locations
-     */
-    public function setCurrencyLocations($currency_locations): void
-    {
-        $this->currency_locations = $currency_locations;
-    }
-
-
-
 }

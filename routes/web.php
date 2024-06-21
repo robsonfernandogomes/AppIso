@@ -18,4 +18,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::post('/iso4217',[IsoController::class, 'getISO4217Data']);
+Route::post('/iso4217',[IsoController::class, 'getData']);
