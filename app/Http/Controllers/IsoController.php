@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Iso4217Item;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use \Illuminate\Support\Collection;
-use \Illuminate\Http\Response;
 
 /**
  * @author Robson F. Gomes
@@ -24,10 +24,10 @@ class IsoController extends Controller
      * @param $item
      * @return string
      */
-    private function removerTDTag($item) : string
+    private function removerTDTag($item): string
     {
-        $item = str_replace("<td>","",$item);
-        $item = str_replace("</td>","",$item);
+        $item = str_replace("<td>", "", $item);
+        $item = str_replace("</td>", "", $item);
         return $item;
     }
 
@@ -36,12 +36,12 @@ class IsoController extends Controller
      * @param $item
      * @return string
      */
-    private function formatCurrencyData($item) : string
+    private function formatCurrencyData($item): string
     {
-        $item=$this->removerTDTag($item);
+        $item = $this->removerTDTag($item);
         preg_match_all('~>.*<~', $item, $item);
-        $item = str_replace(">","",$item[0][0]);
-        $item = str_replace("<","",$item);
+        $item = str_replace(">", "", $item[0][0]);
+        $item = str_replace("<", "", $item);
         return $item;
     }
 
@@ -50,7 +50,7 @@ class IsoController extends Controller
      * @param $item
      * @return array
      */
-    private function generateListLocationNames($item) : array
+    private function generateListLocationNames($item): array
     {
         preg_match_all('/title=\"([A-Za-z0-9 ]+?)\"/', $item, $arrayLocations);
         return $arrayLocations[1];
@@ -64,22 +64,22 @@ class IsoController extends Controller
      */
     private function getDataByCrawling($isoCode): Iso4217Item|array
     {
-            $isoCode =  trim($isoCode);
-            $isoCode = strtoupper($isoCode);
-            $html = file_get_contents($this->urlToMakeCrawling);
+        $isoCode = trim($isoCode);
+        $isoCode = strtoupper($isoCode);
+        $html = file_get_contents($this->urlToMakeCrawling);
 
-            preg_match_all('~<td>.*~', $html, $matches);
-            $index = array_search("<td>$isoCode</td>",$matches[0]);
+        preg_match_all('~<td>.*~', $html, $matches);
+        $index = array_search("<td>$isoCode</td>", $matches[0]);
 
-            if($index !== false){
-                $code = $this->removerTDTag($matches[0][$index]);
-                $number = (int)$this->removerTDTag($matches[0][++$index]);
-                $decimal = (int)$this->removerTDTag($matches[0][++$index]);
-                $currency = $this->formatCurrencyData($matches[0][++$index]);
-                $currency_location = $this->generateListLocationNames($this->removerTDTag($matches[0][++$index]));
+        if ($index !== false) {
+            $code = $this->removerTDTag($matches[0][$index]);
+            $number = (int)$this->removerTDTag($matches[0][++$index]);
+            $decimal = (int)$this->removerTDTag($matches[0][++$index]);
+            $currency = $this->formatCurrencyData($matches[0][++$index]);
+            $currency_location = $this->generateListLocationNames($this->removerTDTag($matches[0][++$index]));
 
-                return new Iso4217Item($code, $number, $decimal, $currency, $currency_location);
-            }
+            return new Iso4217Item($code, $number, $decimal, $currency, $currency_location);
+        }
         return [];
     }
 
@@ -88,12 +88,12 @@ class IsoController extends Controller
      * @param $item
      * @return array
      */
-    private function convertStringCodeToArrayCodes ($item) : array
+    private function convertStringCodeToArrayCodes($item): array
     {
-        $item = str_replace("[","",$item);
-        $item = str_replace("]","",$item);
-        $item = str_replace('"',"",$item);
-        return explode(",",$item);
+        $item = str_replace("[", "", $item);
+        $item = str_replace("]", "", $item);
+        $item = str_replace('"', "", $item);
+        return explode(",", $item);
     }
 
     /**
@@ -102,9 +102,9 @@ class IsoController extends Controller
      * @param $code
      * @return JsonResponse
      */
-    private function generateResponse( $response, $code) :JsonResponse
+    private function generateResponse($response, $code): JsonResponse
     {
-        return new JsonResponse(json_encode($response),$code);
+        return new JsonResponse(json_encode($response), $code);
     }
 
     /**
@@ -115,7 +115,7 @@ class IsoController extends Controller
     private function getCodeInDataBase($number): Collection
     {
         return DB::table(Iso4217Item::$entity)
-            ->where('number','=',$number)->get('code');
+            ->where('number', '=', $number)->get('code');
     }
 
     /**
@@ -128,11 +128,11 @@ class IsoController extends Controller
         $arrayCodes = $this->convertStringCodeToArrayCodes($request['code_list']);
         $arrayResponse = [];
 
-        foreach ($arrayCodes as $code){
-            array_push($arrayResponse,$this->getDataByCrawling($code));
+        foreach ($arrayCodes as $code) {
+            array_push($arrayResponse, $this->getDataByCrawling($code));
         }
 
-        return $this->generateResponse($arrayResponse,200);
+        return $this->generateResponse($arrayResponse, 200);
     }
 
     /**
@@ -144,10 +144,10 @@ class IsoController extends Controller
     {
         $code = $this->getCodeInDataBase($request['number']);
 
-        if(sizeof($code)>0){
-            return $this->generateResponse( $this->getDataByCrawling($code[0]->code),200);
+        if (sizeof($code) > 0) {
+            return $this->generateResponse($this->getDataByCrawling($code[0]->code), 200);
         }
-        return $this->generateResponse([],200);
+        return $this->generateResponse([], 200);
     }
 
     /**
@@ -160,14 +160,14 @@ class IsoController extends Controller
         $arrayNumbers = $this->convertStringCodeToArrayCodes($request['number_list']);
         $arrayResponse = [];
 
-        foreach ($arrayNumbers as $number){
+        foreach ($arrayNumbers as $number) {
             $code = $this->getCodeInDataBase($number);
 
-            if(sizeof($code)>0){
-                array_push($arrayResponse,$this->getDataByCrawling($code[0]->code));
+            if (sizeof($code) > 0) {
+                array_push($arrayResponse, $this->getDataByCrawling($code[0]->code));
             }
         }
-        return $this->generateResponse($arrayResponse,200);
+        return $this->generateResponse($arrayResponse, 200);
     }
 
     /**
@@ -177,22 +177,22 @@ class IsoController extends Controller
      */
     public function getData(Request $request): Response|JsonResponse
     {
-        if($request->has('code')){
-            return $this->generateResponse($this->getDataByCrawling($request['code']),200);
+        if ($request->has('code')) {
+            return $this->generateResponse($this->getDataByCrawling($request['code']), 200);
         }
 
-        if($request->has('code_list')){
-           return $this->getIsoByCodeList($request);
+        if ($request->has('code_list')) {
+            return $this->getIsoByCodeList($request);
         }
 
-        if($request->has('number')){
-           return $this->getIsoByNumber($request);
+        if ($request->has('number')) {
+            return $this->getIsoByNumber($request);
         }
 
-        if($request->has('number_list')){
+        if ($request->has('number_list')) {
             return $this->getIsoByNumberList($request);
         }
-        return $this->generateResponse('Formato inválido',400);
+        return $this->generateResponse('Formato inválido', 400);
     }
 
 
